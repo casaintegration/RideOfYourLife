@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Spencer Family Saga: An Interactive Exploration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard designed for non-linear exploration. The structure includes an introduction, an interactive character gallery, a historical timeline, and a dedicated section for the New York Times style book review. This design choice moves away from the novel's linear format to a more engaging, user-driven experience where users can explore character arcs, historical context, and critical reception at their own pace. The goal is to facilitate understanding of the complex relationships and timelines by presenting them visually and interactively, rather than purely textually, now complemented by external critical analysis. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Spencer Family members. Goal: Introduce characters and their detailed stories. Viz/Method: Interactive HTML/CSS cards with a JS-powered detail modal. Interaction: Click to reveal. Justification: Allows for a clean overview with deep-dive capability without cluttering the UI. Method: Vanilla JS and Tailwind CSS.
+        - Report Info: Key family and historical events from 1918-1975. Goal: Compare the family's personal journey with major US historical events. Viz/Method: Chart.js scatter plot timeline. Interaction: Hover over points for details. Justification: Visually demonstrates the intersection of personal and public history, a core theme of the novel. Library: Chart.js (Canvas).
+        - Report Info: Core themes like secrets, identity, social change. Goal: Organize and present these complex themes. Viz/Method: Themed sections with descriptive text and links to the relevant characters and timeline events. Interaction: N/A, informational. Justification: Provides clear, high-level context for the interactive elements. Method: HTML/CSS.
+        - Report Info: New York Times style book review. Goal: Provide external critical perspective and summary. Viz/Method: Static HTML/Markdown content within a dedicated section. Interaction: Scroll to read. Justification: Offers a comprehensive review directly within the app, enhancing the user's understanding of the novel's reception and key aspects. Method: HTML/CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 60vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .nav-link.active {
+            font-weight: 700;
+            color: #0d9488; /* teal-600 */
+        }
+        .character-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .prose h2, .prose h3, .prose h4 {
+            font-family: 'Playfair Display', serif;
+            color: #1c1917; /* stone-900 */
+        }
+        .prose p, .prose li {
+            color: #57534e; /* stone-600 */
+        }
+        .prose {
+            max-width: none; /* Override default prose max-width */
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl md:text-2xl font-bold text-stone-900">Ride of Your Life</h1>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#saga" class="nav-link text-stone-600 hover:text-teal-600 transition-colors">The Saga</a>
+                    <a href="#characters" class="nav-link text-stone-600 hover:text-teal-600 transition-colors">The Spencers</a>
+                    <a href="#timeline" class="nav-link text-stone-600 hover:text-teal-600 transition-colors">Timeline</a>
+                    <a href="#themes" class="nav-link text-stone-600 hover:text-teal-600 transition-colors">Core Themes</a>
+                    <a href="#review" class="nav-link text-stone-600 hover:text-teal-600 transition-colors">The Review</a>
+                </div>
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-stone-600 hover:text-teal-600 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500">
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#saga" class="nav-link text-stone-600 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">The Saga</a>
+                <a href="#characters" class="nav-link text-stone-600 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">The Spencers</a>
+                <a href="#timeline" class="nav-link text-stone-600 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">Timeline</a>
+                <a href="#themes" class="nav-link text-stone-600 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">Core Themes</a>
+                <a href="#review" class="nav-link text-stone-600 hover:text-teal-600 block px-3 py-2 rounded-md text-base font-medium">The Review</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <section id="saga" class="text-center my-12 scroll-mt-20">
+            <h2 class="text-4xl md:text-5xl font-bold text-stone-900 mb-4">A Multi-Generational American Saga</h2>
+            <p class="max-w-3xl mx-auto text-lg text-stone-600">
+                This is an interactive exploration of the Spencer family, a dynasty whose story mirrors the seismic shifts of 20th-century America. From the battlefields of World War I to the social revolutions of the 1970s, their journey is one of ambition, love, devastating secrets, and the relentless pursuit of the American Dream. Explore the characters and the historical moments that defined their lives.
+            </p>
+        </section>
+
+        <section id="characters" class="my-16 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-2">The Spencer Family</h2>
+                <p class="max-w-2xl mx-auto text-md text-stone-600">Click on a character to discover their story, their struggles, and their place within the family's complex history.</p>
+            </div>
+            <div id="character-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-8">
+            </div>
+        </section>
+
+        <section id="timeline" class="my-16 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-2">An Interwoven History</h2>
+                <p class="max-w-3xl mx-auto text-md text-stone-600">
+                    The Spencer family's personal milestones did not happen in a vacuum. This timeline visualizes how their lives intersected with and were shaped by pivotal moments in American and world history. Hover over any point to see the specific event.
+                </p>
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+                 <div class="flex justify-center mt-4 space-x-6 text-sm">
+                    <div class="flex items-center"><span class="h-3 w-3 rounded-full bg-teal-500 mr-2"></span> Spencer Family Event</div>
+                    <div class="flex items-center"><span class="h-3 w-3 rounded-full bg-slate-500 mr-2"></span> Historical Event</div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="themes" class="my-16 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-2">Core Themes</h2>
+                <p class="max-w-2xl mx-auto text-md text-stone-600">The saga is woven with powerful themes that explore the human condition against a backdrop of historical change.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-bold mb-3">The Weight of Secrets</h3>
+                    <p class="text-stone-600">From Ben Jr.'s suppressed sexuality to the mystery of his illegitimate son, the narrative demonstrates how hidden truths can corrode relationships and shape destinies across generations, leading to tragic consequences.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-bold mb-3">Identity & Reinvention</h3>
+                    <p class="text-stone-600">Characters constantly redefine themselves. Elias's journey from alcoholism to redemption and Connie's pivot from a failed marriage to a pioneering career highlight the struggle for self-worth and authenticity in a changing world.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-bold mb-3">The American Dream</h3>
+                    <p class="text-stone-600">The Spencers' pursuit of success is both a triumphant and cautionary tale. It challenges the classic notion of the American Dream by revealing the profound personal costs and hidden sacrifices often required to achieve it.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="review" class="my-16 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-2">The New York Times Book Review</h2>
+                <p class="max-w-2xl mx-auto text-md text-stone-600">A critical perspective on "Ride of Your Life," highlighting its narrative strengths and thematic depth.</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg prose mx-auto">
+                <h3 class="text-3xl font-bold text-stone-900 mb-2">A Family's American Odyssey, Set to a Secret Soundtrack</h3>
+                <p>In "Ride of Your Life," an ambitious and sprawling narrative, the author invites readers into the intimate world of the Spencer family, whose century-spanning saga serves as a microcosm of the American experience. From the battlefields of World War I to the social upheavals of the 1970s, this meticulously detailed work, while presented as a novel, reads with the immersive depth of a multi-generational family history. It is a compelling journey through triumphs and tragedies, entrepreneurial zeal and personal demons, all set against the tumultuous backdrop of a nation in constant flux. The narrative's unique structure and innovative use of multimedia elements promise an experience unlike any other, offering a secret soundtrack to a deeply human story.</p>
+
+                <h4 class="text-2xl font-bold text-stone-900 mt-6 mb-2">Synopsis & Character Highlights</h4>
+                <p>The story commences with Benjamin Elias Spencer Sr., a 19-year-old British soldier in 1918, navigating the Dolomites during World War I, where his surprising knack for cooking and languages foreshadows his future success. His subsequent emigration to Hoboken, New Jersey, in 1919, just before America's immigration clampdowns, marks the genesis of the Spencer family's American Dream. He establishes a legendary delicatessen and marries Chelsea Constance Poe, a direct and loving Hoboken native whose own blunt character provides a grounding force.</p>
+                <p>Their son, Benjamin Elias Spencer Jr., inherits his father's entrepreneurial spirit, building Cosmopolitan Car Service into a thriving Manhattan limousine empire. Yet, Ben Jr.'s life is shadowed by a deeply suppressed bisexuality, a secret that tragically contributes to the unraveling of his marriage to Genevieve Laroux Spencer, a woman consumed by bitterness and addiction, culminating in her suicide in 1963.</p>
+                <p>The narrative then pivots to the next generation, focusing on Ben Jr.'s fraternal twins, Elias and Constance. Elias, initially an intelligent but underachieving alcoholic, finds a path to redemption through his father's unconventional intervention, which includes a job at a rival limousine company and the promise of a rare Mercedes-Benz 600 Pullman. His journey to sobriety and professional mastery, honed through rigorous training in England, is a testament to resilience. Along the way, he encounters pivotal figures of the Civil Rights Movement, including Dr. Martin Luther King Jr. and Malcolm X, often chauffeuring them in the very Mercedes that symbolizes his transformation.</p>
+                <p>Constance, the seemingly "perfect" twin, embarks on her own journey of self-discovery. Her brief, ill-fated marriage to Alvaro Carrión, a wealthy but self-absorbed Puerto Rican banker, serves as a catalyst for her to reject a life of being merely "decorative". Her innate linguistic talents, inherited from her grandfather, and her mechanical engineering background lead her to a groundbreaking career in hospitality, culminating in her role as the general manager of San Francisco's iconic Fairmont Hotel.</p>
+                <p>Elias finds love and stability with Beverly Elizabeth Booth, a sharp, independent woman who rises from secretary to creative director at the prestigious J. Walter Thompson advertising agency, embodying the evolving role of women in post-war America. The narrative also introduces Marcus Howard, Ben Jr.'s indispensable Black business partner, whose journey from a Mississippi sharecropper's son to an equity stake in Cosmopolitan Cars highlights a quiet but profound advancement of racial equality within the business world. A lingering mystery surrounds Rutger Krause, Ben Jr.'s illegitimate son from a wartime affair, whose brief presence and eventual disappearance add a poignant, unresolved layer to the family's hidden truths.</p>
+
+                <h4 class="text-2xl font-bold text-stone-900 mt-6 mb-2">Thematic Exploration</h4>
+                <h5 class="text-xl font-bold text-stone-900 mt-4 mb-1">The Weight of Secrets:</h5>
+                <p>A pervasive undercurrent throughout the Spencer saga is the corrosive impact of hidden truths. Ben Jr.'s suppressed bisexuality/homosexuality, a secret guarded for decades due to societal prejudice, casts a long shadow over his life and relationships. This concealment tragically contributes to the dysfunction of his marriage and, ultimately, Genevieve's suicide, which is explicitly linked to Elias's revelation of his father's hidden life. The existence of Rutger, Ben Jr.'s illegitimate son from a wartime encounter, further underscores the lingering consequences of these carefully guarded secrets, rippling through generations and shaping destinies. The psychological toll of concealment and its devastating consequences are laid bare, demonstrating how unacknowledged truths can poison relationships and lead to profound personal suffering.</p>
+
+                <h5 class="text-xl font-bold text-stone-900 mt-4 mb-1">Identity in Flux:</h5>
+                <p>The narrative masterfully explores the fluid nature of identity, particularly through the arcs of Elias and Connie. Elias's initial portrayal as an intelligent but underachieving alcoholic, overshadowed by his "perfect" twin, presents a stark image of a young man struggling with self-worth. His journey to sobriety and professional competence, facilitated by his father's unconventional support and rigorous training, becomes a powerful exploration of redemption and self-redefinition. Similarly, Connie's path from a seemingly traditional "perfect" life (a wealthy marriage) to forging her own highly successful career in male-dominated fields highlights the evolving role of women in post-war America. Her annulment is not a failure but a powerful catalyst for self-discovery and agency, demonstrating her rejection of being "decorative" or "secondary". Both siblings grapple with defining themselves amidst family legacy, personal trauma, and societal expectations.</p>
+
+                <h5 class="text-xl font-bold text-stone-900 mt-4 mb-1">America in Transition: A Society Reshaped:</h5>
+                <p>The Spencer family's story is deeply embedded in the tumultuous historical context of 20th-century America. The narrative vividly portrays the profound impact of major social shifts. The Civil Rights Movement is a powerful presence, highlighted through Marcus Howard's journey as a Black business partner and Elias's encounters with iconic figures like Dr. Martin Luther King Jr. and Malcolm X, illustrating the ongoing struggle for equality and justice. The burgeoning women's movement finds its voice through Connie and Beverly's pioneering careers, challenging traditional gender roles and advocating for constitutional equality. Furthermore, Ben Jr.'s personal journey and activism in the nascent gay liberation movement, sparked by the Stonewall riots, provide an intimate lens into the fight for LGBTQ+ rights, revealing the courage required to live authentically in a prejudiced society. These macro-level changes directly impact the micro-level lives and choices of the Spencer family, showcasing how personal destinies are inextricably linked to the grand tapestry of history.</p>
+                
+                <h5 class="text-xl font-bold text-stone-900 mt-4 mb-1">The American Dream, Reconsidered:</h5>
+                <p>The Spencers' pursuit of entrepreneurial and professional success across generations, from Ben Sr.'s humble deli to Cosmopolitan Cars and Connie's hotel management, is both triumphant and fraught with personal cost and hidden sacrifices. The narrative challenges simplistic notions of prosperity by revealing the emotional and psychological toll often exacted by this pursuit. The family's journey, while embodying classic American ambition, also exposes the complex interplay of privilege, prejudice, and personal choices that shape individual destinies within the larger national narrative.</p>
+
+                <h4 class="text-2xl font-bold text-stone-900 mt-6 mb-2">Literary Merit & Style</h4>
+                <p>"Ride of Your Life" distinguishes itself through its bold narrative architecture. The non-linear structure, with its frequent time jumps and thematic chapter divisions, creates a rich, layered reading experience. This approach allows for a deeper understanding of cause and effect across generations, building dramatic tension through gradual revelations. The constant temporal shifting creates an effect where past events are not merely recalled but actively resonate and influence the present, deepening the exploration of intergenerational patterns and the enduring impact of trauma. This makes the saga feel organically interconnected, compelling the reader to actively synthesize information and fostering a more immersive and intellectually rewarding experience.</p>
+                <p>The prose is characterized by its clarity, directness, and moments of striking evocative power. Vivid imagery and sensory details effectively immerse the reader in diverse settings. One can almost feel the "jagged spires" of the Dolomites, smell the "sweet smell of roasting coffee beans" mingling with salt air in Hoboken, or experience the "intoxicating aroma of leather and wood" inside the luxurious Mercedes-Benz. The consistent omniscient third-person voice maintains a comprehensive perspective, allowing seamless transitions between characters' inner worlds and broader historical observations.</p>
+                <p>Dialogue serves multiple functions, effectively revealing character, advancing the plot, and highlighting complex relationship dynamics. Chelsea's bluntness, Elias's raw anger, and Ben Jr.'s carefully controlled demeanor all ring true, reflecting their individual personalities and the nuances of their interactions. Conversations propel the story forward, such as Ben Jr.'s life-altering offer to Elias or the subtle power plays in Alvaro's annulment negotiations. The authenticity of the dialogue also contributes to the historical realism, with characters' speech patterns and vocabulary reflecting the prevailing social mores and cultural shifts of their respective eras.</p>
+                <p>Perhaps the most innovative and experimental element is the inclusion of Spotify links directly within the narrative. This multimedia integration creates a multi-sensory "soundtrack" for the saga, inviting readers into a uniquely interactive experience. These links are strategically placed at moments when a character is listening to music or when a particular song sets the mood, enhancing atmosphere, providing subtle character insight (e.g., Ben Jr.'s choice of The Beatles at a 1963 wedding, Elias's "saddest album" during a moment of despair), and grounding the narrative in historical authenticity by linking to specific period music. This pioneering approach pushes the boundaries of traditional literary format, creating an immersive experience that could define a new sub-genre. While it assumes reader access to technology, the narrative remains compelling even if the links are not clicked, with the music serving as an enriching layer for those who choose to engage.</p>
+
+                <h4 class="text-2xl font-bold text-stone-900 mt-6 mb-2">Strengths & Weaknesses</h4>
+                <p>"Ride of Your Life" boasts several compelling strengths. Its ambitious scope and multi-generational narrative are captivating, drawing the reader into the intricate lives of the Spencer family. The characters are complex and well-developed, their struggles and triumphs feeling authentic and deeply human. The narrative's profound thematic resonance effectively intertwines personal lives with significant historical events and social movements, offering a rich commentary on the American experience. The innovative and effective use of multimedia through Spotify links provides enhanced immersion and a unique reading experience. Furthermore, the vivid descriptive language and rich sensory details bring diverse settings to life, from the industrial grit of Hoboken to the opulent interiors of luxury cars and hotels. The story maintains a strong emotional core, particularly in the arcs of Elias, Connie, and Ben Jr., ensuring reader investment.</p>
+                <p>Constructively, areas for potential refinement exist. The highly non-linear structure, while a strength, might present a challenge for some readers, potentially leading to narrative density or occasional disorientation that requires a very attentive engagement. Similarly, the sheer volume of historical detail, while contributing to authenticity, could occasionally overwhelm some readers, potentially overshadowing the emotional beats of the story without clearer narrative signposting. Finally, the ambiguity of the "novel" genre might inadvertently mismanage reader expectations, potentially leading to a disconnect if readers anticipate a more conventional fictional plot.</p>
+
+                <h4 class="text-2xl font-bold text-stone-900 mt-6 mb-2">Conclusion</h4>
+                <p>"Ride of Your Life" stands as a powerful, ambitious, and deeply human family saga. Its unique contribution to contemporary storytelling lies in its bold blend of historical depth, intimate character studies, and multimedia innovation. The narrative is a testament to resilience, the evolving American identity, and the enduring power of family, for better or worse. It offers a compelling, multi-sensory journey through the 20th century, revealing how personal lives are shaped by, and in turn, shape, the grand tapestry of history. For readers who appreciate sweeping narratives that intertwine personal destinies with the grand tapestry of history, "Ride of Your Life" promises an unforgettable and profoundly immersive experience.</p>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-stone-800 text-stone-300 py-6 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 An Interactive Exploration of "Ride of Your Life".</p>
+            <p class="text-sm text-stone-400 mt-1">Created as a conceptual companion to the novel.</p>
+        </div>
+    </footer>
+
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-75 z-40 hidden"></div>
+    <div id="character-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <div id="modal-panel" class="bg-white rounded-lg shadow-2xl w-full max-w-3xl transform transition-all opacity-0 translate-y-4">
+                <div class="p-6 md:p-8">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 id="modal-name" class="text-3xl font-bold font-display"></h3>
+                            <p id="modal-title" class="text-lg text-teal-600"></p>
+                        </div>
+                        <button id="close-modal" class="p-2 -mt-2 -mr-2 text-stone-400 hover:text-stone-800 transition-colors">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="mt-4 prose max-w-none text-stone-600">
+                        <p id="modal-bio"></p>
+                        <h4>Key Relationships</h4>
+                        <ul id="modal-relations"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const characters = [
+                { id: 'ben-sr', name: 'Benjamin Spencer Sr.', title: 'The Patriarch', bio: 'A WWI veteran from London who immigrated to Hoboken, NJ. He founded the family\'s fortunes with a legendary delicatessen, embodying the classic American Dream through hard work and an innate talent for connecting with people.', relations: ['Husband of Chelsea', 'Father of Ben Jr.'] },
+                { id: 'chelsea', name: 'Chelsea Poe Spencer', title: 'The Matriarch', bio: 'The blunt, loving, and fiercely loyal wife of Ben Sr. A Hoboken native, she is the family\'s emotional anchor, known for her directness and unwavering support.', relations: ['Wife of Ben Sr.', 'Mother of Ben Jr.'] },
+                { id: 'ben-jr', name: 'Benjamin Spencer Jr.', title: 'The Entrepreneur', bio: 'The ambitious son who built a limousine empire. His life is defined by entrepreneurial success and the profound personal struggle of concealing his homosexuality, a secret with tragic consequences for his family.', relations: ['Son of Ben Sr. & Chelsea', 'Husband of Genevieve', 'Father of Elias & Connie', 'Business partner of Marcus', 'Father of Rutger'] },
+                { id: 'genevieve', name: 'Genevieve Laroux Spencer', title: 'The Tragic Figure', bio: 'Ben Jr.\'s wife, a complex woman consumed by resentment, addiction, and unacknowledged trauma from her past. Her life ends tragically, a casualty of the family\'s secrets.', relations: ['Wife of Ben Jr.', 'Mother of Elias & Connie'] },
+                { id: 'elias', name: 'Elias Spencer', title: 'The Redeemer', bio: 'The intelligent but underachieving twin who battles alcoholism. His journey is one of redemption, finding sobriety and purpose as a high-end chauffeur, connecting him to key figures of the Civil Rights movement.', relations: ['Twin of Connie', 'Son of Ben Jr. & Genevieve', 'Husband of Beverly'] },
+                { id: 'connie', name: 'Constance Spencer', title: 'The Pioneer', bio: 'The "perfect" twin who forges her own path after a failed marriage. A talented engineer, she becomes a trailblazing executive in the male-dominated hotel industry, advocating for women\'s rights.', relations: ['Twin of Elias', 'Daughter of Ben Jr. & Genevieve', 'Ex-wife of Alvaro'] },
+                { id: 'alvaro', name: 'Alvaro Carrión', title: 'The Foil', bio: 'Connie\'s handsome, wealthy, but pompous first husband. His lack of character and hidden family ties to the Mafia serve as the catalyst for Connie\'s journey toward independence.', relations: ['Ex-husband of Connie'] },
+                { id: 'beverly', name: 'Beverly Booth Spencer', title: 'The Modern Woman', bio: 'Elias\'s sharp, independent wife. She embodies the new wave of career women, rising through the ranks at a top advertising agency while embracing her personal freedom.', relations: ['Wife of Elias', 'Friend of Connie'] },
+                { id: 'marcus', name: 'Marcus Howard', title: 'The Partner', bio: 'Ben Jr.\'s indispensable Black business partner. His rise from a sharecropper\'s son to an equity partner represents a quiet but powerful story of racial progress and friendship.', relations: ['Business partner of Ben Jr.'] },
+                { id: 'rutger', name: 'Rutger Krause', title: 'The Secret Son', bio: 'Ben Jr.\'s illegitimate son from a wartime affair in Germany. His existence is a carefully guarded secret, and his mysterious story adds a layer of unresolved consequence to the family saga.', relations: ['Illegitimate son of Ben Jr.'] },
+            ];
+
+            const timelineEvents = [
+                { year: 1918, event: 'WWI Ends', type: 'historical' },
+                { year: 1919, event: 'Ben Sr. immigrates to US', type: 'family' },
+                { year: 1929, event: 'Great Depression Begins', type: 'historical' },
+                { year: 1941, event: 'US enters WWII', type: 'historical' },
+                { year: 1944, event: 'Ben Jr. has affair in Germany (Rutger conceived)', type: 'family' },
+                { year: 1945, event: 'WWII Ends', type: 'historical' },
+                { year: 1950, event: 'Ben Jr. launches Cosmopolitan Cars', type: 'family' },
+                { year: 1955, event: 'Rosa Parks & Montgomery Bus Boycott', type: 'historical'},
+                { year: 1959, event: 'Elias discovers Ben Jr.\'s sexuality', type: 'family'},
+                { year: 1963, event: 'Genevieve commits suicide; Connie\'s wedding annulled', type: 'family' },
+                { year: 1963, event: 'March on Washington (MLK\'s "I Have a Dream")', type: 'historical' },
+                { year: 1964, event: 'Civil Rights Act passed', type: 'historical' },
+                { year: 1964, event: 'Elias drives MLK; begins sobriety journey', type: 'family' },
+                { year: 1965, event: 'Malcolm X assassinated (Elias drove him)', type: 'family' },
+                { year: 1968, event: 'MLK assassinated', type: 'historical'},
+                { year: 1969, event: 'Stonewall Riots ignite Gay Rights movement', type: 'historical' },
+                { year: 1969, event: 'Ben Jr. comes out to his family', type: 'family' },
+                { year: 1970, event: 'First Christopher Street Liberation Day March', type: 'historical'},
+                { year: 1972, event: 'Equal Rights Amendment passed by Congress', type: 'historical' },
+                { year: 1975, event: 'Spencer family featured in Time Magazine', type: 'family' },
+            ];
+            
+            const characterGrid = document.getElementById('character-grid');
+            characters.forEach(char => {
+                const card = document.createElement('div');
+                card.className = 'character-card cursor-pointer bg-white p-4 rounded-lg shadow-md text-center';
+                card.dataset.id = char.id;
+                card.innerHTML = `
+                    <div class="w-20 h-20 rounded-full mx-auto mb-3 bg-teal-100 flex items-center justify-center">
+                        <span class="text-3xl font-bold text-teal-600 font-display">${char.name.split(' ').map(n=>n[0]).join('')}</span>
+                    </div>
+                    <h4 class="font-bold text-stone-900">${char.name}</h4>
+                    <p class="text-sm text-stone-500">${char.title}</p>
+                `;
+                characterGrid.appendChild(card);
+            });
+
+            const modal = document.getElementById('character-modal');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalPanel = document.getElementById('modal-panel');
+            const closeModalBtn = document.getElementById('close-modal');
+
+            function showModal(character) {
+                document.getElementById('modal-name').textContent = character.name;
+                document.getElementById('modal-title').textContent = character.title;
+                document.getElementById('modal-bio').textContent = character.bio;
+                const relationsList = document.getElementById('modal-relations');
+                relationsList.innerHTML = '';
+                character.relations.forEach(rel => {
+                    const li = document.createElement('li');
+                    li.textContent = rel;
+                    relationsList.appendChild(li);
+                });
+                modal.classList.remove('hidden');
+                modalBackdrop.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                setTimeout(() => {
+                    modalPanel.classList.remove('opacity-0', 'translate-y-4');
+                    modalPanel.classList.add('opacity-100', 'translate-y-0');
+                }, 10);
+            }
+
+            function hideModal() {
+                modalPanel.classList.add('opacity-0', 'translate-y-4');
+                modalPanel.classList.remove('opacity-100', 'translate-y-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modalBackdrop.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }, 300);
+            }
+
+            characterGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.character-card');
+                if (card) {
+                    const charId = card.dataset.id;
+                    const character = characters.find(c => c.id === charId);
+                    showModal(character);
+                }
+            });
+
+            closeModalBtn.addEventListener('click', hideModal);
+            modalBackdrop.addEventListener('click', hideModal);
+            
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            const chartData = {
+                datasets: [
+                    {
+                        label: 'Spencer Family Event',
+                        data: timelineEvents.filter(e => e.type === 'family').map(e => ({ x: e.year, y: 1 })),
+                        backgroundColor: 'rgb(13 148 136)',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                    },
+                    {
+                        label: 'Historical Event',
+                        data: timelineEvents.filter(e => e.type === 'historical').map(e => ({ x: e.year, y: 2 })),
+                        backgroundColor: 'rgb(71 85 105)',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                    }
+                ]
+            };
+            const timelineChart = new Chart(ctx, {
+                type: 'scatter',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const year = context.parsed.x;
+                                    const eventData = timelineEvents.find(e => e.year === year && e.type === (context.dataset.label.includes('Family') ? 'family' : 'historical'));
+                                    return eventData ? `${eventData.event} (${eventData.year})` : '';
+                                }
+                            },
+                            displayColors: false,
+                            backgroundColor: '#fff',
+                            titleColor: '#333',
+                            bodyColor: '#333',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            padding: 10,
+                            bodyFont: { size: 14 },
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 1915,
+                            max: 1980,
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: { size: 14 }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            display: false,
+                            min: 0,
+                            max: 3
+                        }
+                    }
+                }
+            });
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 80) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

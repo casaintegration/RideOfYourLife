@@ -11,13 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     
     <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: A thematic, single-page dashboard designed for non-linear exploration. The structure includes a prominent image banner, an introduction, an interactive character gallery, a historical timeline, and a dedicated section for the New York Times style book review. This design choice moves away from the novel's linear format to a more engaging, user-driven experience where users can explore character arcs, historical context, and critical reception at their own pace. The goal is to facilitate understanding of the complex relationships and timelines by presenting them visually and interactively, rather than purely textually, now complemented by external critical analysis. -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard designed for non-linear exploration. The structure includes an introduction, an interactive character gallery, a historical timeline, and a dedicated section for the New York Times style book review. This design choice moves away from the novel's linear format to a more engaging, user-driven experience where users can explore character arcs, historical context, and critical reception at their own pace. The goal is to facilitate understanding of the complex relationships and timelines by presenting them visually and interactively, rather than purely textually, now complemented by external critical analysis. -->
     <!-- Visualization & Content Choices: 
         - Report Info: Spencer Family members. Goal: Introduce characters and their detailed stories. Viz/Method: Interactive HTML/CSS cards with a JS-powered detail modal. Interaction: Click to reveal. Justification: Allows for a clean overview with deep-dive capability without cluttering the UI. Method: Vanilla JS and Tailwind CSS.
         - Report Info: Key family and historical events from 1918-1975. Goal: Compare the family's personal journey with major US historical events. Viz/Method: Chart.js scatter plot timeline. Interaction: Hover over points for details. Justification: Visually demonstrates the intersection of personal and public history, a core theme of the novel. Library: Chart.js (Canvas).
         - Report Info: Core themes like secrets, identity, social change. Goal: Organize and present these complex themes. Viz/Method: Themed sections with descriptive text and links to the relevant characters and timeline events. Interaction: N/A, informational. Justification: Provides clear, high-level context for the interactive elements. Method: HTML/CSS.
         - Report Info: New York Times style book review. Goal: Provide external critical perspective and summary. Viz/Method: Static HTML/Markdown content within a dedicated section. Interaction: Scroll to read. Justification: Offers a comprehensive review directly within the app, enhancing the user's understanding of the novel's reception and key aspects. Method: HTML/CSS.
-        - Report Info: Main image. Goal: Provide a strong visual identity for the page. Viz/Method: Full-width banner at the top of the page. Interaction: N/A, static visual. Justification: Creates an immediate visual impact and sets the tone for the content below. Method: HTML/CSS background image.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
@@ -29,20 +28,7 @@
         h1, h2, h3, .font-display {
             font-family: 'Playfair Display', serif;
         }
-        .banner-image {
-            background-image: url('http://googleusercontent.com/file_content/2'); /* Updated image URL */
-            background-size: cover;
-            background-position: center;
-            width: 100%;
-            height: 250px; /* Adjust height as needed */
-            position: relative;
-            z-index: 10; /* Ensure it's behind the sticky header if header is also at top */
-        }
-        @media (min-width: 768px) {
-            .banner-image {
-                height: 350px;
-            }
-        }
+        /* Removed .banner-image CSS */
         .chart-container {
             position: relative;
             width: 100%;
@@ -82,7 +68,7 @@
 </head>
 <body class="text-stone-800 antialiased">
 
-    <div class="banner-image"></div>
+    <!-- Removed <div class="banner-image"></div> -->
 
     <header class="bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
         <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
